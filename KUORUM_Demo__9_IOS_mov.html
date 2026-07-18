@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>KUORUM – Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,600;1,400&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --or:#E8622A;--orl:#F2845A;--orp:#FDE8DC;
+  --cr:#F9F5EE;--crd:#EDE8DF;
+  --ink:#1A1A2E;--inkl:#4A4A6A;--inkf:#9090B0;
+  --wh:#FFFFFF;--gr:#22C55E;--re:#EF4444;--pu:#8B5CF6;
+  --nh:56px;--bh:64px;--th:36px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--cr);}
+body{font-family:'Sora',sans-serif;color:var(--ink);position:fixed;top:0;left:0;right:0;bottom:0;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+#app{display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;}
+
+/* TICKER */
+#tick{height:var(--th);background:var(--ink);overflow:hidden;flex-shrink:0;display:flex;align-items:center;}
+.tk{display:flex;align-items:center;white-space:nowrap;animation:sc 36s linear infinite;will-change:transform;}
+.ti{display:inline-flex;align-items:center;gap:6px;padding:0 24px;font-size:11px;font-weight:500;color:var(--cr);letter-spacing:.05em;text-transform:uppercase;}
+.td{width:6px;height:6px;border-radius:50%;background:var(--or);flex-shrink:0;}
+.tv{color:var(--orl);font-weight:600;}
+@keyframes sc{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* TOPBAR */
+#top{height:var(--nh);background:var(--wh);border-bottom:1px solid var(--crd);display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 1px 8px rgba(0,0,0,.06);z-index:10;}
+.tlo{display:flex;align-items:center;gap:8px;}
+.tmk{width:32px;height:32px;background:var(--or);border-radius:8px;display:flex;align-items:center;
+  justify-content:center;color:var(--wh);font-family:'Newsreader',serif;font-size:18px;font-weight:600;font-style:italic;}
+.tnm{font-family:'Newsreader',serif;font-size:18px;font-weight:600;color:var(--ink);}
+.tac{display:flex;align-items:center;gap:4px;}
+.tbtn{width:40px;height:40px;border-radius:10px;border:none;background:transparent;
+  display:flex;align-items:center;justify-content:center;color:var(--inkl);
+  -webkit-appearance:none;appearance:none;cursor:pointer;position:relative;}
+.tbtn:active{background:var(--crd);}
+.bdot{position:absolute;top:7px;right:7px;width:8px;height:8px;background:var(--or);
+  border-radius:50%;border:1.5px solid var(--wh);pointer-events:none;}
+
+/* CONTENT */
+#cnt{flex:1;min-height:0;overflow:hidden;position:relative;}
+.vw{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;background:var(--cr);}
+.vw.on{display:flex;}
+
+/* NAV */
+#nav{height:var(--bh);background:var(--wh);border-top:1px solid var(--crd);
+  display:flex;align-items:stretch;flex-shrink:0;z-index:10;box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border:none;background:transparent;color:var(--inkf);font-family:'Sora',sans-serif;
+  font-size:10px;font-weight:500;-webkit-appearance:none;appearance:none;padding:6px 4px;
+  position:relative;cursor:pointer;}
+.nb.on{color:var(--or);}
+.nb.on::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--or);border-radius:0 0 3px 3px;}
+.ni{width:22px;height:22px;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.nl{line-height:1;pointer-events:none;}
+.nbadge{position:absolute;top:4px;right:calc(50% - 18px);width:16px;height:16px;background:var(--or);
+  color:var(--wh);border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;border:1.5px solid var(--wh);pointer-events:none;}
+
+/* HOME SCROLL */
+.hs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 24px;display:flex;flex-direction:column;gap:16px;}
+.glbl{font-size:12px;font-weight:500;color:var(--inkf);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
+.gnm{font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:var(--ink);}
+.gsb{font-size:13px;color:var(--inkl);margin-top:2px;}
+.shd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sti{font-family:'Newsreader',serif;font-size:17px;font-weight:600;color:var(--ink);}
+.slk{font-size:12px;font-weight:600;color:var(--or);border:none;background:none;-webkit-appearance:none;appearance:none;padding:4px 0;cursor:pointer;}
+
+/* MEETING CARD */
+.mc{background:var(--wh);border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.05);}
+.mch{background:linear-gradient(135deg,var(--ink) 0%,#2D2D4E 100%);padding:16px;display:flex;align-items:flex-start;justify-content:space-between;}
+.mct{font-size:10px;font-weight:700;color:var(--orl);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.mcti{font-family:'Newsreader',serif;font-size:18px;font-weight:600;color:var(--wh);line-height:1.25;}
+.lbdg{display:flex;align-items:center;gap:5px;background:rgba(232,98,42,.25);border:1px solid rgba(232,98,42,.5);border-radius:20px;padding:4px 10px;flex-shrink:0;margin-left:8px;}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--orl);animation:pu 1.5s ease-in-out infinite;flex-shrink:0;pointer-events:none;}
+.ltxt{font-size:10px;font-weight:700;color:var(--orl);text-transform:uppercase;letter-spacing:.1em;pointer-events:none;}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
+.mcb{padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.mcm{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.mit{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--inkl);}
+.mit svg{pointer-events:none;}
+.agl{display:flex;flex-direction:column;gap:6px;}
+.agi{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--cr);border-radius:10px;}
+.agn{width:22px;height:22px;border-radius:50%;background:var(--orp);color:var(--or);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:none;}
+.agt{font-size:12px;color:var(--ink);line-height:1.4;pointer-events:none;}
+.cta{display:flex;gap:8px;}
+.bp{flex:1;height:44px;background:var(--or);color:var(--wh);border:none;border-radius:12px;
+  font-family:'Sora',sans-serif;font-size:13px;font-weight:600;-webkit-appearance:none;appearance:none;
+  display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
+.bp:active{opacity:.85;}
+.bs{height:44px;padding:0 16px;background:var(--cr);color:var(--ink);border:1.5px solid var(--crd);
+  border-radius:12px;font-family:'Sora',sans-serif;font-size:13px;font-weight:500;
+  -webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
+.bs:active{background:var(--crd);}
+
+/* KPIs */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sc{background:var(--wh);border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.04);display:flex;flex-direction:column;gap:6px;}
+.sl{font-size:11px;font-weight:500;color:var(--inkf);text-transform:uppercase;letter-spacing:.07em;}
+.sv{font-family:'Newsreader',serif;font-size:26px;font-weight:600;color:var(--ink);}
+.sup{font-size:11px;font-weight:600;color:var(--gr);}
+.sdn{font-size:11px;font-weight:600;color:var(--re);}
+
+/* AGENT CHIPS */
+.agr{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
+.agr::-webkit-scrollbar{display:none;}
+.agc{flex-shrink:0;background:var(--wh);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;width:130px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.04);cursor:pointer;}
+.agc:active{opacity:.8;}
+.agav{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;pointer-events:none;}
+.agcn{font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;pointer-events:none;}
+.agcr{font-size:10px;color:var(--inkf);pointer-events:none;}
+.agst{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--gr);pointer-events:none;}
+.agst::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* COMITÉ */
+#v-c{display:none;flex-direction:column;}
+#v-c.on{display:flex;}
+.chd{background:var(--wh);border-bottom:1px solid var(--crd);padding:12px 16px;flex-shrink:0;}
+.cht{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ctit{font-family:'Newsreader',serif;font-size:16px;font-weight:600;color:var(--ink);}
+.clv{display:flex;align-items:center;gap:5px;background:var(--or);border-radius:20px;padding:4px 10px;}
+.clv .ldot{background:var(--wh);}
+.clv .ltxt{color:var(--wh);}
+.cpls{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
+.cpls::-webkit-scrollbar{display:none;}
+.cpl{flex-shrink:0;display:flex;align-items:center;gap:6px;background:var(--cr);border-radius:20px;padding:5px 10px;border:1px solid var(--crd);}
+.plav{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;pointer-events:none;}
+.plnm{font-size:11px;font-weight:500;color:var(--ink);white-space:nowrap;pointer-events:none;}
+.plct{font-size:10px;font-weight:700;color:var(--or);background:var(--orp);border-radius:10px;padding:1px 5px;pointer-events:none;}
+#tb{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;gap:14px;}
+.msg{display:flex;gap:10px;}
+.mav{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;pointer-events:none;}
+.mbd{flex:1;min-width:0;}
+.mtp{display:flex;align-items:baseline;gap:8px;margin-bottom:4px;}
+.mnm{font-size:12px;font-weight:600;color:var(--ink);pointer-events:none;}
+.mtm{font-size:10px;color:var(--inkf);pointer-events:none;}
+.mbb{padding:10px 12px;border-radius:4px 14px 14px 14px;font-size:13px;line-height:1.6;color:var(--ink);}
+.mh .mbb{background:var(--wh);border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.ma .mbb{background:linear-gradient(135deg,#FFF8F4,#FFF2EB);border:1px solid rgba(232,98,42,.15);}
+.mtag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.ms{align-self:center;}
+.mst{font-size:11px;color:var(--inkf);background:var(--crd);border-radius:20px;padding:4px 12px;}
+.typ{display:flex;gap:4px;align-items:center;padding:6px 0;}
+.tyd{width:7px;height:7px;border-radius:50%;background:var(--or);animation:ty 1.2s ease-in-out infinite;}
+.tyd:nth-child(2){animation-delay:.2s}.tyd:nth-child(3){animation-delay:.4s}
+@keyframes ty{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-6px);opacity:1}}
+.cia{background:var(--wh);border-top:1px solid var(--crd);padding:10px 16px;display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.ci{flex:1;height:40px;background:var(--cr);border:1.5px solid var(--crd);border-radius:20px;padding:0 14px;
+  font-family:'Sora',sans-serif;font-size:13px;color:var(--ink);outline:none;-webkit-appearance:none;
+  -webkit-user-select:text;user-select:text;}
+.csnd{width:40px;height:40px;background:var(--or);border-radius:50%;border:none;display:flex;align-items:center;
+  justify-content:center;color:var(--wh);-webkit-appearance:none;appearance:none;flex-shrink:0;cursor:pointer;}
+.csnd:active{opacity:.85;}
+
+/* DATOS */
+#v-d{background:var(--cr);}
+.ds{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;gap:16px;}
+.kr{display:flex;gap:10px;}
+.kc{flex:1;background:var(--wh);border-radius:14px;padding:14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;}
+.kv{font-family:'Newsreader',serif;font-size:28px;font-weight:600;color:var(--ink);line-height:1;margin-bottom:4px;}
+.kl{font-size:10px;color:var(--inkf);text-transform:uppercase;letter-spacing:.07em;line-height:1.3;}
+.cc{background:var(--wh);border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.cct{font-family:'Newsreader',serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.ccs{font-size:11px;color:var(--inkf);margin-bottom:14px;}
+.cw{position:relative;height:180px;}
+
+/* INFORMES */
+#v-i{background:var(--cr);}
+.is{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.ifc{background:var(--wh);border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.04);display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
+.ifc:active{opacity:.8;}
+.ifi{width:40px;height:40px;border-radius:12px;background:var(--orp);display:flex;align-items:center;justify-content:center;color:var(--or);flex-shrink:0;pointer-events:none;}
+.iin{flex:1;min-width:0;}
+.iit{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px;line-height:1.3;pointer-events:none;}
+.iim{font-size:11px;color:var(--inkf);margin-bottom:6px;pointer-events:none;}
+.itg{display:flex;gap:6px;flex-wrap:wrap;pointer-events:none;}
+.tg{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.05em;}
+.tn{background:var(--orp);color:var(--or);}.ti2{background:#EDE8FF;color:var(--pu);}
+.tok{background:#DCFCE7;color:var(--gr);}.tp{background:var(--crd);color:var(--inkl);}
+.iar{color:var(--inkf);flex-shrink:0;align-self:center;pointer-events:none;}
+.fab{position:absolute;bottom:20px;right:20px;width:52px;height:52px;background:var(--or);
+  border-radius:50%;border:none;box-shadow:0 4px 16px rgba(232,98,42,.4);
+  display:flex;align-items:center;justify-content:center;color:var(--wh);
+  -webkit-appearance:none;appearance:none;cursor:pointer;z-index:5;}
+
+/* MODAL */
+#mov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;
+  align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+#mov.on{display:flex;}
+.msh{background:var(--wh);border-radius:24px 24px 0 0;width:100%;max-height:85vh;
+  overflow:hidden;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);animation:up .3s ease;}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhnd{width:36px;height:4px;background:var(--crd);border-radius:2px;margin:12px auto 0;flex-shrink:0;pointer-events:none;}
+.mhdr{padding:16px 20px 12px;border-bottom:1px solid var(--crd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mttl{font-family:'Newsreader',serif;font-size:19px;font-weight:600;color:var(--ink);}
+.mcls{width:32px;height:32px;border-radius:50%;background:var(--cr);border:none;display:flex;align-items:center;justify-content:center;color:var(--inkl);-webkit-appearance:none;appearance:none;cursor:pointer;}
+.mbdy{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 20px 20px;}
+.mds{margin-bottom:20px;}
+.mds h3{font-family:'Newsreader',serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid var(--crd);}
+.mds p{font-size:13px;line-height:1.7;color:var(--inkl);margin-bottom:8px;}
+.acd{background:var(--cr);border-radius:10px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--or);}
+.acdn{font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;margin-bottom:2px;}
+.acdt{font-size:13px;color:var(--ink);line-height:1.5;}
+.dlb{width:100%;height:48px;background:var(--or);color:var(--wh);border:none;border-radius:14px;
+  font-family:'Sora',sans-serif;font-size:14px;font-weight:600;-webkit-appearance:none;appearance:none;
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;cursor:pointer;}
+
+/* TOAST */
+#tst{position:fixed;bottom:calc(var(--bh) + 16px);left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--wh);padding:10px 20px;border-radius:20px;font-size:13px;
+  font-weight:500;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:200;white-space:nowrap;}
+#tst.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+*{scrollbar-width:none;-ms-overflow-style:none;}
+*::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TICKER -->
+<div id="tick">
+  <div class="tk">
+    <span class="ti"><span class="td"></span>QUÓRUM<span class="tv">11/12</span></span>
+    <span class="ti"><span class="td"></span>SESIÓN EN CURSO<span class="tv">47 min</span></span>
+    <span class="ti"><span class="td"></span>PUNTO 3/5<span class="tv">Expansión LATAM</span></span>
+    <span class="ti"><span class="td"></span>AGENTES IA<span class="tv">3 activos</span></span>
+    <span class="ti"><span class="td"></span>ACTA AUTO-GENERANDO<span class="tv">En vivo</span></span>
+    <span class="ti"><span class="td"></span>PRÓX. SESIÓN<span class="tv">15 Ago 2025</span></span>
+    <span class="ti"><span class="td"></span>QUÓRUM<span class="tv">11/12</span></span>
+    <span class="ti"><span class="td"></span>SESIÓN EN CURSO<span class="tv">47 min</span></span>
+    <span class="ti"><span class="td"></span>PUNTO 3/5<span class="tv">Expansión LATAM</span></span>
+    <span class="ti"><span class="td"></span>AGENTES IA<span class="tv">3 activos</span></span>
+    <span class="ti"><span class="td"></span>ACTA AUTO-GENERANDO<span class="tv">En vivo</span></span>
+    <span class="ti"><span class="td"></span>PRÓX. SESIÓN<span class="tv">15 Ago 2025</span></span>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="top">
+  <div class="tlo">
+    <div class="tmk">K</div>
+    <span class="tnm">Kuorum</span>
+  </div>
+  <div class="tac">
+    <button class="tbtn" onclick="K.toast('Búsqueda en desarrollo')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="tbtn" onclick="K.toast('3 notificaciones pendientes')">
+      <div class="bdot"></div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <button class="tbtn" onclick="K.modal('Mi perfil','<div class=mds><h3>Carlos Mendoza</h3><p>Presidente del Consejo de Administración</p><p>carlos.mendoza@empresa.com</p></div>')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="cnt">
+
+  <!-- HOME -->
+  <div class="vw on" id="v-h">
+    <div class="hs">
+      <div>
+        <div class="glbl">Buenos días</div>
+        <div class="gnm">Sr. García</div>
+        <div class="gsb">Consejo de Administración · 18 Jul 2025</div>
+      </div>
+      <div>
+        <div class="shd">
+          <span class="sti">Sesión activa</span>
+          <button class="slk" onclick="K.toast('Historial próximamente')">Ver todas</button>
+        </div>
+        <div class="mc">
+          <div class="mch">
+            <div>
+              <div class="mct">Consejo de Administración</div>
+              <div class="mcti">Reunión Ordinaria<br>Q3 2025</div>
+            </div>
+            <div class="lbdg"><div class="ldot"></div><span class="ltxt">En vivo</span></div>
+          </div>
+          <div class="mcb">
+            <div class="mcm">
+              <div class="mit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>47 min</div>
+              <div class="mit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>11/12</div>
+              <div class="mit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Punto 3/5</div>
+            </div>
+            <div class="agl">
+              <div class="agi"><div class="agn">3</div><div class="agt">Expansión LATAM — Aprobación presupuesto €8.2M</div></div>
+              <div class="agi"><div class="agn">4</div><div class="agt">Plan de riesgos regulatorios Q3</div></div>
+              <div class="agi"><div class="agn">5</div><div class="agt">Nombramiento Director Financiero</div></div>
+            </div>
+            <div class="cta">
+              <button class="bp" onclick="K.go('c');K.toast('Conectado a la sesión ✓')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Unirse a la sesión
+              </button>
+              <button class="bs" onclick="K.agenda()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Orden del día
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="shd"><span class="sti">KPIs clave</span></div>
+        <div class="sg">
+          <div class="sc"><div class="sl">Ingresos Q2</div><div class="sv">€42.3M</div><div class="sup">▲ 18.4%</div></div>
+          <div class="sc"><div class="sl">EBITDA</div><div class="sv">31%</div><div class="sup">▲ 2.1pp</div></div>
+          <div class="sc"><div class="sl">NPS Global</div><div class="sv">74</div><div class="sup">▲ 6pts</div></div>
+          <div class="sc"><div class="sl">Cuota Mercado</div><div class="sv">23.7%</div><div class="sdn">▼ 0.3pp</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="shd">
+          <span class="sti">Agentes IA activos</span>
+          <button class="slk" onclick="K.go('c')">Ver comité</button>
+        </div>
+        <div class="agr">
+          <div class="agc" onclick="K.go('c')"><div class="agav" style="background:#FDE8DC">📊</div><div class="agcn">Asesor Financiero</div><div class="agcr">Análisis cuantitativo</div><div class="agst">Activo</div></div>
+          <div class="agc" onclick="K.go('c')"><div class="agav" style="background:#EDE8FF">⚖️</div><div class="agcn">Asesor Legal</div><div class="agcr">Compliance &amp; riesgos</div><div class="agst">Activo</div></div>
+          <div class="agc" onclick="K.go('c')"><div class="agav" style="background:#DCFCE7">🎯</div><div class="agcn">Estrategia</div><div class="agcr">Análisis competitivo</div><div class="agst">Activo</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMITÉ -->
+  <div class="vw" id="v-c">
+    <div class="chd">
+      <div class="cht">
+        <div class="ctit">Comité IA · En sesión</div>
+        <div class="clv"><div class="ldot"></div><span class="ltxt">En vivo</span></div>
+      </div>
+      <div class="cpls">
+        <div class="cpl"><div class="plav" style="background:#FDE8DC">📊</div><span class="plnm">Financiero</span><span class="plct" id="cf">0</span></div>
+        <div class="cpl"><div class="plav" style="background:#EDE8FF">⚖️</div><span class="plnm">Legal</span><span class="plct" id="cl">0</span></div>
+        <div class="cpl"><div class="plav" style="background:#DCFCE7">🎯</div><span class="plnm">Estrategia</span><span class="plct" id="ce">0</span></div>
+      </div>
+    </div>
+    <div id="tb">
+      <div class="msg ms"><span class="mst">Sesión iniciada · 18 Jul 2025, 10:00h</span></div>
+      <div class="msg mh">
+        <div class="mav" style="background:#EDE8DF">👤</div>
+        <div class="mbd">
+          <div class="mtp"><span class="mnm">Carlos Mendoza</span><span class="mtm">10:00</span></div>
+          <div class="mbb">Buenos días a todos. Comenzamos la sesión ordinaria del Consejo Q3 2025. El primer punto es la aprobación del presupuesto para la expansión LATAM.</div>
+        </div>
+      </div>
+    </div>
+    <div class="cia">
+      <input class="ci" id="inp" type="text" placeholder="Escribir en el comité…" onkeypress="if(event.key==='Enter')K.send()">
+      <button class="csnd" onclick="K.send()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- DATOS -->
+  <div class="vw" id="v-d">
+    <div class="ds">
+      <div class="kr">
+        <div class="kc"><div class="kv">€42.3M</div><div class="kl">Ingresos Q2</div></div>
+        <div class="kc"><div class="kv">31%</div><div class="kl">EBITDA</div></div>
+        <div class="kc"><div class="kv">74</div><div class="kl">NPS</div></div>
+      </div>
+      <div class="cc"><div class="cct">Evolución de Ingresos</div><div class="ccs">Millones de euros · 2024–2025</div><div class="cw"><canvas id="ch1"></canvas></div></div>
+      <div class="cc"><div class="cct">Mercados LATAM</div><div class="ccs">Distribución de oportunidad</div><div class="cw"><canvas id="ch2"></canvas></div></div>
+      <div class="cc"><div class="cct">EBITDA por trimestre</div><div class="ccs">Porcentaje sobre ingresos</div><div class="cw"><canvas id="ch3"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- INFORMES -->
+  <div class="vw" id="v-i">
+    <div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;">
+      <div class="is">
+        <div class="ifc" onclick="K.informe('acta')">
+          <div class="ifi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div class="iin"><div class="iit">Acta Sesión Q3 2025</div><div class="iim">Generada por IA · Hoy, 10:47h</div><div class="itg"><span class="tg tn">Nuevo</span><span class="tg ti2">IA</span></div></div>
+          <div class="iar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="ifc" onclick="K.informe('lat')">
+          <div class="ifi" style="background:#EDE8FF;color:#8B5CF6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <div class="iin"><div class="iit">Análisis Expansión LATAM</div><div class="iim">Financiero + Estrategia · 18 Jul</div><div class="itg"><span class="tg ti2">IA</span><span class="tg tok">Aprobado</span></div></div>
+          <div class="iar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="ifc" onclick="K.informe('rie')">
+          <div class="ifi" style="background:#DCFCE7;color:#22C55E"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="iin"><div class="iit">Informe de Riesgos Q3</div><div class="iim">Asesor Legal · 15 Jul 2025</div><div class="itg"><span class="tg tp">PDF</span><span class="tg tok">Revisado</span></div></div>
+          <div class="iar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="ifc" onclick="K.informe('kpi')">
+          <div class="ifi" style="background:#EDE8DF;color:#4A4A6A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+          <div class="iin"><div class="iit">Dashboard KPIs Q2 2025</div><div class="iim">Financiero · 30 Jun 2025</div><div class="itg"><span class="tg tp">PDF</span></div></div>
+          <div class="iar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+      <button class="fab" onclick="K.toast('Nuevo informe en preparación…')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /cnt -->
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nb on" id="n-h" onclick="K.go('h')">
+    <div class="ni"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <span class="nl">Inicio</span>
+  </button>
+  <button class="nb" id="n-c" onclick="K.go('c')">
+    <div class="ni"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+    <span class="nl">Comité</span>
+    <div class="nbadge" id="bdg">3</div>
+  </button>
+  <button class="nb" id="n-d" onclick="K.go('d')">
+    <div class="ni"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <span class="nl">Datos</span>
+  </button>
+  <button class="nb" id="n-i" onclick="K.go('i')">
+    <div class="ni"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <span class="nl">Informes</span>
+  </button>
+</div>
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div id="mov">
+  <div class="msh" onclick="event.stopPropagation()">
+    <div class="mhnd"></div>
+    <div class="mhdr">
+      <span class="mttl" id="mt"></span>
+      <button class="mcls" onclick="K.closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mbdy" id="mb"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="tst"></div>
+
+<script>
+/* ══ iOS HEIGHT FIX ══ */
+(function fix(){
+  document.getElementById('app').style.height = window.innerHeight + 'px';
+})();
+window.onresize = function(){ document.getElementById('app').style.height = window.innerHeight + 'px'; };
+window.onorientationchange = function(){ setTimeout(function(){ document.getElementById('app').style.height = window.innerHeight + 'px'; }, 350); };
+
+/* ══ NAMESPACE GLOBAL K — accesible desde onclick inline ══ */
+var K = (function(){
+
+  /* ─── STATE ─── */
+  var cur = 'h';
+  var chartsOk = false;
+  var simOk = false;
+  var cnts = {f:0,l:0,e:0};
+  var toastT;
+
+  /* ─── NAVIGATE ─── */
+  function go(v){
+    ['h','c','d','i'].forEach(function(x){
+      var el = document.getElementById('v-'+x);
+      var nb = document.getElementById('n-'+x);
+      if(el){ el.classList.remove('on'); el.style.display='none'; }
+      if(nb) nb.classList.remove('on');
+    });
+    var vEl = document.getElementById('v-'+v);
+    var nEl = document.getElementById('n-'+v);
+    if(vEl){ vEl.classList.add('on'); vEl.style.display='flex'; }
+    if(nEl) nEl.classList.add('on');
+    cur = v;
+    if(v==='d' && !chartsOk){ chartsOk=true; setTimeout(mkCharts,80); }
+    if(v==='c'){
+      var b=document.getElementById('bdg'); if(b) b.style.display='none';
+      if(!simOk){ simOk=true; sim(); }
+    }
+  }
+
+  /* ─── TOAST ─── */
+  function toast(msg){
+    var el=document.getElementById('tst');
+    el.textContent=msg; el.classList.add('on');
+    clearTimeout(toastT);
+    toastT=setTimeout(function(){ el.classList.remove('on'); },2600);
+  }
+
+  /* ─── MODAL ─── */
+  function modal(t,b){
+    document.getElementById('mt').textContent=t;
+    document.getElementById('mb').innerHTML=b;
+    document.getElementById('mov').classList.add('on');
+    document.getElementById('mov').style.display='flex';
+  }
+  function closeModal(){
+    document.getElementById('mov').classList.remove('on');
+    document.getElementById('mov').style.display='none';
+  }
+
+  /* ─── AGENDA ─── */
+  function agenda(){
+    modal('Orden del día',
+      '<div class=mds><h3>Puntos del día</h3>'+
+      a('Punto 1','Lectura y aprobación del acta anterior')+
+      a('Punto 2','Resultados Q2 2025 — €42.3M ingresos')+
+      a('Punto 3 ← Actual','Expansión LATAM — Presupuesto €8.2M')+
+      a('Punto 4','Plan de riesgos regulatorios Q3')+
+      a('Punto 5','Nombramiento Director Financiero')+
+      '</div>');
+  }
+
+  /* ─── INFORMES ─── */
+  var INF={
+    acta:{t:'Acta Sesión Q3 2025',b:
+      '<div class=mds><h3>Resumen ejecutivo</h3><p>Sesión ordinaria 18 jul 2025. Asistentes: 11/12 directivos.</p></div>'+
+      '<div class=mds><h3>Acuerdos</h3>'+a('Acuerdo 1','Aprobación acta anterior — unanimidad.')+a('Acuerdo 2','Resultados Q2: €42.3M (+18.4%), EBITDA 31%.')+a('Acuerdo 3 (pte.)','Presupuesto LATAM €8.2M — en deliberación.')+'</div>'+
+      '<div class=mds><h3>Análisis IA</h3><p>TIR 34% a 36m. Legal advierte regulación Brasil. Estrategia: entrada secuencial México→Colombia→Brasil.</p></div>'+
+      '<button class=dlb onclick="K.toast(\'Descargando PDF…\')">⬇ Descargar PDF</button>'},
+    lat:{t:'Análisis Expansión LATAM',b:
+      '<div class=mds><h3>Oportunidad</h3><p>TAM €2.3B · CAGR 12% · 2025–2028</p></div>'+
+      '<div class=mds><h3>Inversión</h3>'+a('CAPEX','€3.2M — infraestructura')+a('OPEX año 1','€5.0M — operaciones')+a('TIR','34% a 36 meses')+'</div>'+
+      '<button class=dlb onclick="K.toast(\'Descargando PDF…\')">⬇ Descargar PDF</button>'},
+    rie:{t:'Informe de Riesgos Q3',b:
+      '<div class=mds><h3>Riesgos</h3>'+a('Alto','LGPD Brasil — 6 meses adaptación')+a('Medio','Tipo cambio MXN/EUR — cobertura 80%')+a('Bajo','Competencia local — IA diferencia suficiente')+'</div>'+
+      '<button class=dlb onclick="K.toast(\'Descargando PDF…\')">⬇ Descargar PDF</button>'},
+    kpi:{t:'Dashboard KPIs Q2 2025',b:
+      '<div class=mds><h3>Indicadores</h3>'+a('Ingresos','€42.3M — +18.4%')+a('EBITDA','31% — +2.1pp')+a('NPS','74 pts — +6')+a('Cuota','23.7% — -0.3pp')+'</div>'+
+      '<button class=dlb onclick="K.toast(\'Descargando PDF…\')">⬇ Descargar PDF</button>'}
+  };
+  function informe(k){ modal(INF[k].t, INF[k].b); }
+  function a(n,t){ return '<div class=acd><div class=acdn>'+n+'</div><div class=acdt>'+t+'</div></div>'; }
+
+  /* ─── SIMULACIÓN COMITÉ ─── */
+  var AG={
+    f:{name:'Asesor Financiero',em:'📊',bg:'#FDE8DC',id:'cf'},
+    l:{name:'Asesor Legal',em:'⚖️',bg:'#EDE8FF',id:'cl'},
+    e:{name:'Estrategia IA',em:'🎯',bg:'#DCFCE7',id:'ce'}
+  };
+  var SCPT=[
+    {d:3000,T:'H',who:'Ana Torres',tm:'10:03',txt:'Propongo analizar el retorno de la expansión LATAM antes de aprobar los €8.2M.'},
+    {d:5500,T:'A',ag:'f',txt:'TIR proyectada <b>34% a 36 meses</b>. Payback mes 22. VPN €2.8M positivo. Recomendación: <b>APROBAR</b> con revisión trimestral.'},
+    {d:9500,T:'H',who:'Miguel Ruiz',tm:'10:06',txt:'¿Cuáles son los riesgos legales en Brasil? Es un mercado complejo.'},
+    {d:12000,T:'A',ag:'l',txt:'3 vectores: <b>1)</b> LGPD — DPO local, 6m. <b>2)</b> ANATEL, 3–4m. <b>3)</b> ISS variable. Compliance €180K. Recomiendo entrar primero por México.'},
+    {d:16000,T:'H',who:'Laura Vega',tm:'10:10',txt:'¿Qué secuencia de entrada en LATAM recomendáis desde estrategia?'},
+    {d:18500,T:'A',ag:'e',txt:'<b>Fase 1 Q4\'25</b> México (€480M TAM). <b>Fase 2 Q2\'26</b> Colombia (18% CAGR). <b>Fase 3 Q4\'26</b> Brasil tras compliance. EBITDA incremental: +€6.2M.'},
+    {d:22500,T:'H',who:'Carlos Mendoza',tm:'10:14',txt:'Gracias. Procedemos a votación: aprobación del presupuesto €8.2M con estrategia secuencial.'},
+    {d:24500,T:'S',txt:'✅ Votación iniciada — 11 directivos participan'},
+    {d:28000,T:'S',txt:'🎉 APROBADO por unanimidad (11/11) — Acta generada automáticamente'}
+  ];
+
+  function sim(){
+    SCPT.forEach(function(s){
+      setTimeout(function(){
+        if(s.T==='H') addH(s.who,s.tm,s.txt);
+        else if(s.T==='A') addTyp(s.ag,function(){ addA(s.ag,s.txt); });
+        else addS(s.txt);
+      },s.d);
+    });
+  }
+
+  function addH(who,tm,txt){
+    var d=document.createElement('div');
+    d.className='msg mh';
+    d.innerHTML='<div class="mav" style="background:#EDE8DF">👤</div>'+
+      '<div class=mbd><div class=mtp><span class=mnm>'+who+'</span><span class=mtm>'+tm+'</span></div>'+
+      '<div class=mbb>'+txt+'</div></div>';
+    document.getElementById('tb').appendChild(d);
+    scrl();
+  }
+  function addTyp(agK,cb){
+    var ag=AG[agK];
+    var d=document.createElement('div');
+    d.className='msg ma';
+    d.innerHTML='<div class="mav" style="background:'+ag.bg+'">'+ag.em+'</div>'+
+      '<div class=mbd><div class=mtp><span class=mnm>'+ag.name+'</span></div>'+
+      '<div class=typ><div class=tyd></div><div class=tyd></div><div class=tyd></div></div></div>';
+    document.getElementById('tb').appendChild(d);
+    scrl();
+    setTimeout(function(){ if(d.parentNode)d.parentNode.removeChild(d); cb(); },1900);
+  }
+  function addA(agK,txt){
+    var ag=AG[agK];
+    cnts[agK]++;
+    var c=document.getElementById(ag.id); if(c) c.textContent=cnts[agK];
+    var d=document.createElement('div');
+    d.className='msg ma';
+    d.innerHTML='<div class="mav" style="background:'+ag.bg+'">'+ag.em+'</div>'+
+      '<div class=mbd><div class=mtp><span class=mnm>'+ag.name+'</span><span class=mtm>IA</span></div>'+
+      '<div class=mbb><div class=mtag>🤖 Análisis IA</div>'+txt+'</div></div>';
+    document.getElementById('tb').appendChild(d);
+    scrl();
+    if(cur!=='c'){ var b=document.getElementById('bdg'); if(b) b.style.display='flex'; }
+  }
+  function addS(txt){
+    var d=document.createElement('div');
+    d.className='msg ms';
+    d.innerHTML='<span class=mst>'+txt+'</span>';
+    document.getElementById('tb').appendChild(d);
+    scrl();
+  }
+  function scrl(){ var tb=document.getElementById('tb'); setTimeout(function(){ tb.scrollTop=tb.scrollHeight; },60); }
+
+  function send(){
+    var inp=document.getElementById('inp');
+    var v=inp.value.trim(); if(!v) return;
+    var n=new Date();
+    var t=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();
+    addH('Sr. García',t,v);
+    inp.value='';
+    setTimeout(function(){
+      addTyp('f',function(){
+        addA('f','Consulta procesada. Coherente con los objetivos Q3 2025. ¿Desea análisis más detallado?');
+      });
+    },800);
+  }
+
+  /* ─── CHARTS ─── */
+  function mkCharts(){
+    var OR='#E8622A',OL='rgba(232,98,42,.15)',INK='#1A1A2E',FA='#9090B0';
+    var F={family:'Sora,sans-serif',size:11};
+    new Chart(document.getElementById('ch1'),{type:'line',
+      data:{labels:['Q3\'24','Q4\'24','Q1\'25','Q2\'25'],datasets:[{label:'€M',data:[29.4,33.1,37.8,42.3],borderColor:OR,backgroundColor:OL,borderWidth:2.5,pointBackgroundColor:OR,pointRadius:5,fill:true,tension:.4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:F,color:FA}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:F,color:FA,callback:function(v){return'€'+v+'M';}}}}}});
+    new Chart(document.getElementById('ch2'),{type:'doughnut',
+      data:{labels:['México','Colombia','Brasil'],datasets:[{data:[38,28,34],backgroundColor:[OR,'#8B5CF6','#22C55E'],borderWidth:0,hoverOffset:8}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{font:F,color:INK,padding:16,usePointStyle:true,pointStyleWidth:8}}}}});
+    new Chart(document.getElementById('ch3'),{type:'bar',
+      data:{labels:['Q3\'24','Q4\'24','Q1\'25','Q2\'25'],datasets:[{label:'%',data:[26,28,29.5,31],backgroundColor:OR,borderRadius:8,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:F,color:FA}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:F,color:FA,callback:function(v){return v+'%';}},min:20}}}});
+  }
+
+  /* ─── INIT ─── */
+  /* Forzar display correcto en la vista inicial */
+  document.getElementById('v-h').style.display='flex';
+  ['v-c','v-d','v-i'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  /* Arrancar sim de fondo */
+  setTimeout(function(){ if(!simOk){ simOk=true; sim(); } },2000);
+  /* Cerrar modal al tocar overlay */
+  document.getElementById('mov').onclick=function(e){
+    if(e.target===document.getElementById('mov')) closeModal();
+  };
+
+  return { go:go, toast:toast, modal:modal, closeModal:closeModal, agenda:agenda, informe:informe, send:send };
+
+})();
+</script>
+</body>
+</html>
